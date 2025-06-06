@@ -1,6 +1,7 @@
 # WindowsOperationsBroken
 
 What happened
+
 In May 2025 users of OneCommander and some other file managers started reporting that Copy/Move dialogs show only the first time operation is used. 
 
 Affected
