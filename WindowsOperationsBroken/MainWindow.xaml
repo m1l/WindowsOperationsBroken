@@ -14,14 +14,27 @@
     </Window.Resources>
     <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
         <StackPanel Orientation="Vertical" Margin="10,0,10,0">
-            <TextBlock Text="This will create and copy DummyFile.bin from program dir into a DestinationDir subfolder"/>
-
-            <TextBlock Text="Problem: Progress dialogs show only the first time on Windows 11, second time is without progress dialog. Only SOME users of Windows 11 report this"/>
             
-            <Button Content="Copy" HorizontalAlignment="Center" VerticalAlignment="Center" Click="Button_Click"/>
 
+            <TextBlock Text="Problem: Progress dialogs show only the first time on Windows 11, second time is without progress dialog. Only SOME users of Windows 11 report this."/>
+            <TextBlock Text="On own machine uninstalling KB5060842 fixed the issue"/>
+
+            <TextBlock Text="This will create and copy DummyFile.bin from program dir into a \DestinationDir subfolder"/>
+            
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                <Slider x:Name="SizeSlider" Minimum="1" Maximum="20" Value="5" Width="200" SmallChange="1" TickFrequency="1" IsSnapToTickEnabled="True" />
+                <TextBlock Text="{Binding ElementName=SizeSlider, Path=Value}"/>
+                <TextBlock Text=" GB"/>
+            </StackPanel>
+            
+            <Button x:Name="CopyButton" Content="Copy" HorizontalAlignment="Center" VerticalAlignment="Center" Click="Button_Click"/>
+            <TextBlock x:Name="StatusText" HorizontalAlignment="Center"/>
+            
+           
+            
             <CheckBox x:Name="UseWin7Dialogs" Content="Use Windows 7 dialogs"/>
-            <TextBlock Text="This checkbox just sets FOFX_NOMINIMIZEBOX which forces it to use Windows 7 (Vista?) dialogs. With this the dialogs show even the second time Copy is used"/>
+            <CheckBox x:Name="WithMessagePump" Content="Method with message pump"/>
+            <TextBlock Text="^ This checkbox just sets FOFX_NOMINIMIZEBOX which forces it to use Windows 7 (Vista?) dialogs. With this the dialogs show even the second time Copy is used"/>
         </StackPanel>
     </ScrollViewer>
 </Window>

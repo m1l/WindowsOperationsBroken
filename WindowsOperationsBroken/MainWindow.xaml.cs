@@ -10,6 +10,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
+using System.Windows.Threading;
 
 namespace WindowsOperationsBroken
 {
@@ -25,6 +26,7 @@ namespace WindowsOperationsBroken
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
+            CopyButton.IsEnabled = false;
             string baseDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!;
 
             string dummyFileName = "DummyFile.bin";
@@ -44,19 +46,23 @@ namespace WindowsOperationsBroken
             if (File.Exists(destinationFilePath))
                 File.Delete(destinationFilePath);
 
+            StatusText.Text = "Copying file... you should see progress dialog";
             // Perform the copy operation
-            DoCopy(dummyFilePath, destinationDirectory, this, (bool)UseWin7Dialogs.IsChecked);
+            if (WithMessagePump.IsChecked == true)
+                DoCopyWithPump(dummyFilePath, destinationDirectory, this, (bool)UseWin7Dialogs.IsChecked);
+            else
+                DoCopy(dummyFilePath, destinationDirectory, this, (bool)UseWin7Dialogs.IsChecked);
         }
 
         
 
-        internal static void DoCopy(string file, string destDir, Window owner, bool useWindows7Dialogs)
+        internal void DoCopy(string file, string destDir, Window owner, bool useWindows7Dialogs)
         {
             var wih = new System.Windows.Interop.WindowInteropHelper(owner);
             var hWnd = wih.Handle;
 
             var thread = new System.Threading.Thread(() =>
-            {   
+            {
                 try
                 {
                     using (FileOperation fileOp = new FileOperation(null, hWnd))
@@ -71,8 +77,19 @@ namespace WindowsOperationsBroken
                 }
                 catch (Exception ex)
                 {
-                    Debug.WriteLine("Error during file operation: " + ex.Message);
-                }       
+                    Dispatcher.BeginInvoke(DispatcherPriority.Background, () =>
+                    {
+                        CopyButton.IsEnabled = true;
+                        StatusText.Text = ex.Message;
+                    });
+                }
+                finally {
+                    Dispatcher.BeginInvoke(DispatcherPriority.Background, () =>
+                    {
+                        CopyButton.IsEnabled = true;
+                        StatusText.Text = "Done. You can click Copy again";
+                    });
+                }
             });
             thread.IsBackground = false;
             thread.SetApartmentState(System.Threading.ApartmentState.STA);
@@ -80,7 +97,7 @@ namespace WindowsOperationsBroken
         }
 
         //version with message pump, suggested by ChatGPT, makes no difference
-        internal static void DoCopyWithPump(string file, string destDir, Window owner, bool useWindows7Dialogs)
+        internal void DoCopyWithPump(string file, string destDir, Window owner, bool useWindows7Dialogs)
         {
             var wih = new System.Windows.Interop.WindowInteropHelper(owner);
             var hWnd = wih.Handle;
@@ -106,14 +123,22 @@ namespace WindowsOperationsBroken
                     }
                     catch (Exception ex)
                     {
-                        Debug.WriteLine("Error during file operation: " + ex.Message);
+                        Dispatcher.BeginInvoke(DispatcherPriority.Background, () =>
+                        {
+                            CopyButton.IsEnabled = true;
+                            StatusText.Text = ex.Message;
+                        });
                     }
                     finally
                     {
+                        Dispatcher.BeginInvoke(DispatcherPriority.Background, () =>
+                        {
+                            CopyButton.IsEnabled = true;
+                            StatusText.Text = "Done. You can click Copy again";
+                        });
                         disp.BeginInvokeShutdown(
                             System.Windows.Threading.DispatcherPriority.Background);
-                    }
-
+                    }       
                 }));
 
 
@@ -124,9 +149,9 @@ namespace WindowsOperationsBroken
             thread.Start();
         }
 
-        public static void CreateDummyFile(string filePath)
+        public void CreateDummyFile(string filePath)
         {
-            const long sizeInBytes = 3L * 1000 * 1000 * 1000; // 1 GB
+            long sizeInBytes = (long)SizeSlider.Value * 1000 * 1000 * 1000; 
 
             try
             {
@@ -139,7 +164,7 @@ namespace WindowsOperationsBroken
             }
             catch (Exception ex)
             {
-                Debug.WriteLine("Error creating dummy file: " + ex.Message);
+                StatusText.Text = "Error creating dummy file: " + ex.Message;
             }
         }
     }
