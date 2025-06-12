@@ -6,6 +6,7 @@ In May 2025 users of OneCommander and some other file managers started reporting
 
 Affected
 - Only some Windows 11 (24H2 only?) users
+- Uninstalling KB5060842 "Security update" fixed the issue (need confirmation)
 
 Users reported
 - No new software was installed
